@@ -121,7 +121,7 @@ void import_term(Program &prgm, Module &mod, int modIdx, const parse_ucs::functi
 
 	int kind = Term::findDialect(syntax.lang);
 	if (kind >= 0) {
-		mod.terms[termIdx].variants.push_back(Term::Variant(-1, Term::dialects[kind].factory(syntax.name, syntax.body, tokens), Metadata(kind)));
+		mod.terms[termIdx].variants.push_back(Variant(-1, Term::dialects[kind].factory(syntax.name, syntax.body, tokens), Metadata(kind)));
 	}
 
 	for (auto i = syntax.impl.begin(); i != syntax.impl.end(); i++) {
@@ -151,6 +151,22 @@ void import_module(Program &prgm, int modIdx, const parse_ucs::source &syntax, t
 
 	for (auto i = syntax.funcs.begin(); i != syntax.funcs.end(); i++) {
 		import_term(prgm, prgm.mods[modIdx], modIdx, *i, tokens);
+	}
+}
+
+void import_modfile(Project &proj, const parse_ucs::modfile &syntax, tokenizer *tokens) {
+	for (auto i = syntax.deps.begin(); i != syntax.deps.end(); i++) {
+		for (auto j = i->path.begin(); j != i->path.end(); j++) {
+			proj.depends.push_back(Depend{j->first, j->second});
+		}
+	}
+
+	for (auto i = syntax.attrs.begin(); i != syntax.attrs.end(); i++) {
+		if (i->name == "module") {
+			proj.modName = i->value.substr(1, i->value.size()-2);
+		} else if (i->name == "tech") {
+			proj.setTech(i->value.substr(1, i->value.size()-2));
+		}
 	}
 }
 

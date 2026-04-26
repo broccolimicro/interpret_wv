@@ -93,7 +93,7 @@ Prototype import_signature(const parse_ucs::signature &syntax, tokenizer *tokens
 	return result;
 }
 
-void import_term(Program &prgm, Module &mod, int modIdx, const parse_ucs::function &syntax, tokenizer *tokens) {
+void import_term(const Language &lang, Program &prgm, Module &mod, int modIdx, const parse_ucs::function &syntax, tokenizer *tokens) {
 	TypeId recvType;
 	if (not syntax.recv.empty()) {
 		recvType = prgm.findType("", syntax.recv, modIdx);
@@ -117,11 +117,14 @@ void import_term(Program &prgm, Module &mod, int modIdx, const parse_ucs::functi
 		import_declaration(args, prgm, modIdx, *j, tokens);
 	}
 
-	int termIdx = mod.createTerm(Term(syntax.name, args, retType, recvType));
+	TermId id(modIdx);
+	id.index = mod.createTerm(Term(syntax.name, args, retType, recvType));
 
-	int kind = Term::findDialect(syntax.lang);
-	if (kind >= 0) {
-		mod.terms[termIdx].variants.push_back(Variant(-1, Term::dialects[kind].factory(syntax.name, syntax.body, tokens), Metadata(kind)));
+	auto dialect = lang.dialects.find(syntax.lang);
+	if (dialect != lang.dialects.end()) {
+		std::any index = dialect->second(prgm.getLib(syntax.lang), syntax.name, syntax.body, tokens);
+
+		id.var = mod.terms[id.index].createVariant(Variant(syntax.lang, index));
 	}
 
 	for (auto i = syntax.impl.begin(); i != syntax.impl.end(); i++) {
@@ -132,12 +135,12 @@ void import_term(Program &prgm, Module &mod, int modIdx, const parse_ucs::functi
 		} else if (implTerm.size() != 1u) {
 			printf("error: term not unique '%s'\n", proto.to_string().c_str());
 		} else {
-			mod.terms[termIdx].impl.push_back(implTerm.back());
+			mod.terms[id.index].impl.push_back(implTerm.back());
 		}
 	}
 }
 
-void import_module(Program &prgm, int modIdx, const parse_ucs::source &syntax, tokenizer *tokens) {
+void import_module(const Language &lang, Program &prgm, int modIdx, const parse_ucs::source &syntax, tokenizer *tokens) {
 	for (auto i = syntax.types.begin(); i != syntax.types.end(); i++) {
 		TypeId recvType = prgm.findType("", i->name, modIdx);
 		for (auto j = i->members.begin(); j != i->members.end(); j++) {
@@ -150,7 +153,7 @@ void import_module(Program &prgm, int modIdx, const parse_ucs::source &syntax, t
 	}
 
 	for (auto i = syntax.funcs.begin(); i != syntax.funcs.end(); i++) {
-		import_term(prgm, prgm.mods[modIdx], modIdx, *i, tokens);
+		import_term(lang, prgm, prgm.mods[modIdx], modIdx, *i, tokens);
 	}
 }
 

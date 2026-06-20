@@ -122,9 +122,9 @@ void import_term(const Language &lang, Program &prgm, Module &mod, int modIdx, c
 
 	auto dialect = lang.dialects.find(syntax.lang);
 	if (dialect != lang.dialects.end()) {
-		std::any index = dialect->second(prgm.getLib(syntax.lang), syntax.name, syntax.body, tokens);
+		std::any def = dialect->second(syntax.name, syntax.body, tokens);
 
-		id.var = mod.terms[id.index].createVariant(Variant(syntax.lang, index));
+		id.var = mod.terms[id.index].createVariant(Variant(syntax.lang, def));
 	}
 
 	for (auto i = syntax.impl.begin(); i != syntax.impl.end(); i++) {

@@ -20,7 +20,7 @@ using std::string;
 namespace weaver {
 
 struct Language {
-	typedef std::any (*Dialect)(std::any *lib, string name, const parse::syntax*, tokenizer*);
+	typedef std::any (*Dialect)(string name, const parse::syntax*, tokenizer*);
 
 	map<string, Dialect> dialects;
 };

@@ -90,6 +90,9 @@ Prototype import_signature(const parse_ucs::signature &syntax, tokenizer *tokens
 	for (auto i = syntax.args.begin(); i != syntax.args.end(); i++) {
 		result.args.push_back(import_type_signature(*i, tokens));
 	}
+	if (not syntax.unqualified) {
+		result.hashArgs();
+	}
 	return result;
 }
 

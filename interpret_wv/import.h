@@ -36,6 +36,7 @@ Decl import_prototype(const Program &prgm, int modIdx, const parse_ucs::prototyp
 void import_symbols(Program &prgm, int modIdx, const parse_ucs::source &syntax, tokenizer *tokens);
 Typename import_type_signature(const parse_ucs::type_signature &syntax, tokenizer *tokens);
 Prototype import_signature(const parse_ucs::signature &syntax, tokenizer *tokens);
+Decl import_decl(Program &prgm, int modIdx, const parse_ucs::function_decl &syntax, tokenizer *tokens);
 void import_term(const Language &lang, Program &prgm, Module &mod, int modIdx, const parse_ucs::function &syntax, tokenizer *tokens);
 void import_module(const Language &lang, Program &prgm, int modIdx, const parse_ucs::source &syntax, tokenizer *tokens);
 void import_modfile(Project &proj, const parse_ucs::modfile &syntax, tokenizer *tokens);

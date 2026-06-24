@@ -96,13 +96,13 @@ Prototype import_signature(const parse_ucs::signature &syntax, tokenizer *tokens
 	return result;
 }
 
-void import_term(const Language &lang, Program &prgm, Module &mod, int modIdx, const parse_ucs::function &syntax, tokenizer *tokens) {
+Decl import_decl(Program &prgm, int modIdx, const parse_ucs::function_decl &syntax, tokenizer *tokens) {
 	TypeId recvType;
 	if (not syntax.recv.empty()) {
 		recvType = prgm.findType("", syntax.recv, modIdx);
 		if (not recvType.defined()) {
 			printf("error: type not defined '%s'\n", syntax.recv.c_str());
-			return;
+			return Decl();
 		}
 	}
 
@@ -111,7 +111,7 @@ void import_term(const Language &lang, Program &prgm, Module &mod, int modIdx, c
 		retType = prgm.findType(syntax.ret.mod, syntax.ret.name, modIdx);
 		if (not retType.defined()) {
 			printf("error: type not defined '%s'\n", syntax.ret.to_string().c_str());
-			return;
+			return Decl();
 		}
 	}
 
@@ -120,12 +120,18 @@ void import_term(const Language &lang, Program &prgm, Module &mod, int modIdx, c
 		import_declaration(args, prgm, modIdx, *j, tokens);
 	}
 
+	return Decl(syntax.name, args, retType, recvType);
+}
+
+void import_term(const Language &lang, Program &prgm, Module &mod, int modIdx, const parse_ucs::function &syntax, tokenizer *tokens) {
+	Decl decl = import_decl(prgm, modIdx, syntax.decl, tokens);
+
 	TermId id(modIdx);
-	id.index = mod.createTerm(Term(syntax.name, args, retType, recvType));
+	id.index = mod.createTerm(Term(decl));
 
 	auto dialect = lang.dialects.find(syntax.lang);
 	if (dialect != lang.dialects.end()) {
-		std::any def = dialect->second(syntax.name, syntax.body, tokens);
+		std::any def = dialect->second(decl.name, syntax.body, tokens);
 
 		id.var = mod.terms[id.index].createVariant(Variant(syntax.lang, def));
 	}

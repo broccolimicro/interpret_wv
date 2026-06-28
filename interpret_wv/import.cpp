@@ -86,11 +86,11 @@ Prototype import_signature(const parse_ucs::signature &syntax, tokenizer *tokens
 	result.mod = syntax.recv.mod;
 	result.name = syntax.name;
 	result.recv = syntax.recv.name;
-	result.unqualified = syntax.unqualified;
+	result.qualified = syntax.qualified;
 	for (auto i = syntax.args.begin(); i != syntax.args.end(); i++) {
 		result.args.push_back(import_type_signature(*i, tokens));
 	}
-	if (not syntax.unqualified) {
+	if (syntax.qualified) {
 		result.hashArgs();
 	}
 	return result;
@@ -123,15 +123,15 @@ Decl import_decl(Program &prgm, int modIdx, const parse_ucs::function_decl &synt
 	return Decl(syntax.name, args, retType, recvType);
 }
 
-void import_term(const Language &lang, Program &prgm, Module &mod, int modIdx, const parse_ucs::function &syntax, tokenizer *tokens) {
+void import_term(const Project &proj, Program &prgm, Module &mod, int modIdx, const parse_ucs::function &syntax, tokenizer *tokens) {
 	Decl decl = import_decl(prgm, modIdx, syntax.decl, tokens);
 
 	TermId id(modIdx);
 	id.index = mod.createTerm(Term(decl));
 
-	auto dialect = lang.dialects.find(syntax.lang);
-	if (dialect != lang.dialects.end()) {
-		std::any def = dialect->second(decl.name, syntax.body, tokens);
+	const Dialect *dialect = proj.getDialect(syntax.lang);
+	if (dialect != nullptr) {
+		std::any def = dialect->load(decl.name, syntax.body, tokens);
 
 		id.var = mod.terms[id.index].createVariant(Variant(syntax.lang, def));
 	}
@@ -149,7 +149,7 @@ void import_term(const Language &lang, Program &prgm, Module &mod, int modIdx, c
 	}
 }
 
-void import_module(const Language &lang, Program &prgm, int modIdx, const parse_ucs::source &syntax, tokenizer *tokens) {
+void import_module(const Project &proj, Program &prgm, int modIdx, const parse_ucs::source &syntax, tokenizer *tokens) {
 	for (auto i = syntax.types.begin(); i != syntax.types.end(); i++) {
 		TypeId recvType = prgm.findType("", i->name, modIdx);
 		for (auto j = i->members.begin(); j != i->members.end(); j++) {
@@ -162,7 +162,7 @@ void import_module(const Language &lang, Program &prgm, int modIdx, const parse_
 	}
 
 	for (auto i = syntax.funcs.begin(); i != syntax.funcs.end(); i++) {
-		import_term(lang, prgm, prgm.mods[modIdx], modIdx, *i, tokens);
+		import_term(proj, prgm, prgm.mods[modIdx], modIdx, *i, tokens);
 	}
 }
 

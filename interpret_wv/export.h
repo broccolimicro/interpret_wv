@@ -1,5 +1,9 @@
 #pragma once
 
+#include <common/standard.h>
+#include <common/net.h>
+
+#include <parse_ucs/expression.h>
 #include <parse_ucs/modfile.h>
 #include <parse_ucs/type_name.h>
 #include <parse_ucs/function_decl.h>
@@ -8,12 +12,51 @@
 #include <weaver/project.h>
 #include <weaver/program.h>
 
-namespace weaver {
+#include <arithmetic/expression.h>
+#include <arithmetic/state.h>
+#include <arithmetic/action.h>
 
-parse_ucs::function::declaration export_declaration(const Program &prgm, const Instance &inst);
-parse_ucs::type_name export_type_name(const Program &prgm, TypeId id);
-parse_ucs::function_decl export_decl(const Program &prgm, const Decl &decl);
+#include <interpret_arithmetic/export.h>
 
-parse_ucs::modfile export_modfile(const Project &proj);
+namespace parse_ucs {
+
+string export_value(const arithmetic::Value &v);
+
+struct ExpressionExporter : arithmetic::ExpressionExporter {
+	ucs::ConstNetlist nets;
+
+	ExpressionExporter(ucs::ConstNetlist nets);
+	~ExpressionExporter();
+
+	parse_expression::operation export_operator(int func) const override;
+	const parse_expression::precedence_set &precedence() const override;
+	parse_expression::expression::argument export_constant(arithmetic::Value value) const override;
+	parse_expression::expression::argument export_literal(size_t index) const override;
+};
+
+parse_expression::expression export_expression(const arithmetic::Expression &expr, ucs::ConstNetlist nets);
+parse_expression::assignment export_assignment(const arithmetic::Action &expr, ucs::ConstNetlist nets);
+
+struct CompositionExporter : arithmetic::CompositionExporter {
+	ucs::ConstNetlist nets;
+
+	CompositionExporter(ucs::ConstNetlist nets);
+	~CompositionExporter();
+
+	parse_expression::operation export_operator(int func) const override;
+	const parse_expression::precedence_set &precedence() const override;
+	parse_expression::expression::argument export_action(const arithmetic::Action &expr) const override;
+};
+
+parse_expression::expression export_composition(const arithmetic::Parallel &expr, ucs::ConstNetlist nets);
+parse_expression::expression export_composition(const arithmetic::Choice &expr, ucs::ConstNetlist nets);
+
+
+
+parse_ucs::function::declaration export_declaration(const weaver::Program &prgm, const weaver::Instance &inst);
+parse_ucs::type_name export_type_name(const weaver::Program &prgm, weaver::TypeId id);
+parse_ucs::function_decl export_decl(const weaver::Program &prgm, const weaver::Decl &decl);
+
+parse_ucs::modfile export_modfile(const weaver::Project &proj);
 
 }

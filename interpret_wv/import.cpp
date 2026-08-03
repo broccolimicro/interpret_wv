@@ -31,14 +31,11 @@ arithmetic::Expression ExpressionImporter::import_term(const parse_expression::e
 			name += "'" + std::to_string(region.back());
 		}
 		return arithmetic::import_literal(name, symbols, tokens, autoDefine);
-	} else if (type == "type") {
-		std::string name = syntax.ptr->get<type_name>().to_string("");
-		return arithmetic::Expression::typeOf(name);
-	} else if (type == "term") {
-		std::string name = syntax.ptr->get<type_name>().to_string("");
-		return arithmetic::Expression::termOf(name);
 	} else if (type == "label") {
-		std::string value = syntax.ptr->get<label>().value;
+		std::string name = syntax.ptr->get<label>().to_string("");
+		return arithmetic::Expression::labelOf(name);
+	} else if (type == "ident") {
+		std::string value = syntax.ptr->get<ident>().value;
 		return arithmetic::import_constant(value, tokens);
 	}
 	internal("", "unsupported literal type '" + type + "'", __FILE__, __LINE__);
@@ -420,7 +417,7 @@ void import_term(const weaver::Project &proj, weaver::Program &prgm, weaver::Mod
 	id.index = mod.createTerm(weaver::Term(decl));
 
 	const weaver::Dialect *dialect = proj.getDialect(syntax.lang);
-	if (dialect != nullptr and dialect->load != nullptr and syntax.body) {
+	if (dialect != nullptr and dialect->load != nullptr) {
 		std::any def = dialect->load(decl.name, syntax.body.get(), tokens);
 
 		id.var = mod.terms[id.index].createVariant(weaver::Variant(syntax.lang, def));

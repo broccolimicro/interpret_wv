@@ -63,24 +63,10 @@ const parse_expression::precedence_set &ExpressionExporter::precedence() const {
 }
 
 parse_expression::expression::argument ExpressionExporter::export_constant(arithmetic::Value value) const {
-	if (value.type == arithmetic::Value::TYPE) {
-		type_name result;
-		result.name = arithmetic::export_value(value);
-		size_t pos = result.name.rfind(".");
-		if (pos != string::npos) {
-			result.mod = result.name.substr(0, pos);
-			result.name = result.name.substr(pos+1);
-		}
+	if (value.type == arithmetic::Value::LABEL) {
+		label result;
+		result.value = arithmetic::export_value(value);
 		return {2, std::shared_ptr<parse::syntax>(result.clone())};
-	} else if (value.type == arithmetic::Value::TERM) {
-		type_name result;
-		result.name = arithmetic::export_value(value);
-		size_t pos = result.name.rfind(".");
-		if (pos != string::npos) {
-			result.mod = result.name.substr(0, pos);
-			result.name = result.name.substr(pos+1);
-		}
-		return {3, std::shared_ptr<parse::syntax>(result.clone())};
 	}
 	constant result;
 	result.value = arithmetic::export_value(value);

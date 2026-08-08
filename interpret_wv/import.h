@@ -70,13 +70,14 @@ void popScope();*/
 
 // Loading the program
 bool import_declaration(vector<weaver::Instance> &result, const weaver::Program &prgm, int modIdx, const parse_ucs::function::declaration &syntax, tokenizer *tokens);
+void import_type_signature(vector<weaver::Typename> &result, const parse_ucs::function::declaration &syntax, tokenizer *tokens);
 weaver::Decl import_prototype(const weaver::Program &prgm, int modIdx, const parse_ucs::prototype &syntax, weaver::TypeId recvType, tokenizer *tokens);
 void import_symbols(weaver::Program &prgm, int modIdx, const parse_ucs::source &syntax, tokenizer *tokens);
 weaver::Typename import_type_signature(const parse_ucs::type_signature &syntax, tokenizer *tokens);
 weaver::Prototype import_signature(const parse_ucs::signature &syntax, tokenizer *tokens);
-weaver::Decl import_decl(weaver::Program &prgm, int modIdx, const parse_ucs::function_decl &syntax, tokenizer *tokens);
-void import_term(const weaver::Project &proj, weaver::Program &prgm, weaver::Module &mod, int modIdx, const parse_ucs::function &syntax, tokenizer *tokens);
-void import_module(const weaver::Project &proj, weaver::Program &prgm, int modIdx, const parse_ucs::source &syntax, tokenizer *tokens);
+weaver::Decl import_decl(const weaver::Program &prgm, int modIdx, const parse_ucs::function_decl &syntax, tokenizer *tokens);
+weaver::TermId import_term(const weaver::Project &proj, weaver::Program &prgm, weaver::Module &mod, int modIdx, const parse_ucs::function &syntax, tokenizer *tokens);
+std::vector<weaver::TermId> import_module(const weaver::Project &proj, weaver::Program &prgm, int modIdx, const parse_ucs::source &syntax, tokenizer *tokens);
 void import_modfile(weaver::Project &proj, const parse_ucs::modfile &syntax, tokenizer *tokens);
 
 }
